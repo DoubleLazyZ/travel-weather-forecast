@@ -1,5 +1,5 @@
-import os
 from flask import Flask, render_template
+import os
 import requests
 from datetime import datetime
 
@@ -57,6 +57,7 @@ def send_line_notify(message, access_token):
     except requests.RequestException as e:
         return f"發送失敗。錯誤：{e}"
 
+
 @app.route('/')
 def index():
     access_token = os.environ.get('LINE_NOTIFY_TOKEN')
@@ -70,5 +71,5 @@ def index():
 
     return render_template('index.html', message=result)
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+if __name__ == '__main__':
+    app.run(debug=True, port=int(os.getenv("PORT", default=5000)), host='0.0.0.0')
