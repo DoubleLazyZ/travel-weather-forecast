@@ -1,14 +1,12 @@
 from flask import Flask, render_template, jsonify
 import os
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-
-# 保持原有的 get_weather_forecast 和 send_line_notify 函數不變
 
 def get_weather_info(city, lat, lon, api_key):
     base_url = "https://api.openweathermap.org/data/2.5/forecast"
@@ -24,12 +22,19 @@ def get_weather_info(city, lat, lon, api_key):
         response.raise_for_status()
         data = response.json()
         
-        current = data['list'][0]
-        forecasts = data['list'][:5]  # 获取前 15 小时的预报
+        now = datetime.now()
+        forecasts = data['list']
+        
+        # 找到最接近当前时间的预报
+        current = min(forecasts, key=lambda x: abs(datetime.fromtimestamp(x['dt']) - now))
+        
+        # 获取未来15小时的预报
+        future_forecasts = [f for f in forecasts if datetime.fromtimestamp(f['dt']) > now][:5]
 
         weather_info = {
             "city": data['city']['name'],
             "current": {
+                "time": datetime.fromtimestamp(current['dt']).strftime("%m月%d日 %H:%M"),
                 "temp": round(current['main']['temp'], 1),
                 "feels_like": round(current['main']['feels_like'], 1),
                 "humidity": current['main']['humidity'],
@@ -42,13 +47,13 @@ def get_weather_info(city, lat, lon, api_key):
                 "weather": forecast['weather'][0]['description'],
                 "humidity": forecast['main']['humidity'],
                 "wind_speed": round(forecast['wind']['speed'], 1)
-            } for forecast in forecasts],
+            } for forecast in future_forecasts],
         }
         
         return weather_info
     except requests.RequestException as e:
         logging.error(f"Error fetching weather data: {e}")
-        return {"error": f"無法獲取天氣資訊。錯誤：{str(e)}"}
+        return {"error": f"無法獲得天氣資訊。錯誤：{str(e)}"}
     
 def get_weather_forecast(city, lat, lon, api_key):
     base_url = "https://api.openweathermap.org/data/2.5/forecast"
@@ -65,7 +70,7 @@ def get_weather_forecast(city, lat, lon, api_key):
         data = response.json()
         
         city_name = data['city']['name']
-        forecast_list = data['list'][:5]  # 獲取未來15小時的預報（5個3小時間隔）
+        forecast_list = data['list'][:5]  
         
         weather_info = {
             "city": city_name,
@@ -86,7 +91,7 @@ def get_weather_forecast(city, lat, lon, api_key):
         return weather_info
     except requests.RequestException as e:
         logging.error(f"Error fetching weather data: {e}")
-        return {"error": f"無法獲取天氣預報。錯誤：{str(e)}"}
+        return {"error": f"無法獲得天氣預報。錯誤：{str(e)}"}
 
 def send_line_notify(message, access_token):
     url = 'https://notify-api.line.me/api/notify'
