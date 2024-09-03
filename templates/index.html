@@ -76,7 +76,7 @@
         }
     </style>
 </head>
-<body>
+<body>    
     <h1>🌊 釜山天氣預報 🏙️</h1>
     
     <div class="section">
@@ -85,31 +85,18 @@
         <p><span class="emoji">☁️</span>天氣：{{ weather.current.weather }}</p>
         <p><span class="emoji">💧</span>濕度：{{ weather.current.humidity }}%</p>
         <p><span class="emoji">💨</span>風速：{{ weather.current.wind_speed }} m/s</p>
-        <p><span class="emoji">☀️</span>UV指數：{{ weather.current.uvi }}</p>
-        <p><span class="emoji">🌅</span>日出：{{ weather.sunrise }} / <span class="emoji">🌇</span>日落：{{ weather.sunset }}</p>
     </div>
 
     <div class="section">
-        <h2><span class="emoji">⏰</span>24小時預報</h2>
+        <h2><span class="emoji">⏰</span>未來15小時預報</h2>
         <div class="hourly">
-            {% for hour in weather.hourly %}
+            {% for forecast in weather.forecasts %}
             <div class="hour">
-                <p><strong>{{ hour.time }}</strong></p>
-                <p><span class="emoji">🌡️</span>{{ hour.temp }}°C</p>
-                <p><span class="emoji">☁️</span>{{ hour.weather }}</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="section">
-        <h2><span class="emoji">📅</span>7天預報</h2>
-        <div class="daily">
-            {% for day in weather.daily %}
-            <div class="day">
-                <p><strong>{{ day.date }}</strong></p>
-                <p><span class="emoji">🌡️</span>{{ day.temp_min }}°C - {{ day.temp_max }}°C</p>
-                <p><span class="emoji">☁️</span>{{ day.weather }}</p>
+                <p><strong>{{ forecast.time }}</strong></p>
+                <p><span class="emoji">🌡️</span>{{ forecast.temp }}°C</p>
+                <p><span class="emoji">☁️</span>{{ forecast.weather }}</p>
+                <p><span class="emoji">💧</span>濕度：{{ forecast.humidity }}%</p>
+                <p><span class="emoji">💨</span>風速：{{ forecast.wind_speed }} m/s</p>
             </div>
             {% endfor %}
         </div>

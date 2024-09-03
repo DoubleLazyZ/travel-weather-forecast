@@ -11,47 +11,38 @@ app = Flask(__name__)
 # 保持原有的 get_weather_forecast 和 send_line_notify 函數不變
 
 def get_weather_info(city, lat, lon, api_key):
-    base_url = "https://api.openweathermap.org/data/2.5/onecall"
+    base_url = "https://api.openweathermap.org/data/2.5/forecast"
     params = {
         "lat": lat,
         "lon": lon,
         "units": "metric",
         "lang": "zh_tw",
-        "appid": api_key,
-        "exclude": "minutely,alerts"
+        "appid": api_key
     }
     try:
         response = requests.get(base_url, params=params)
         response.raise_for_status()
         data = response.json()
         
-        current = data['current']
-        hourly = data['hourly'][:24]  # 24小時預報
-        daily = data['daily'][:7]  # 7天預報
+        current = data['list'][0]
+        forecasts = data['list'][:5]  # 获取前 15 小时的预报
 
         weather_info = {
-            "city": city,
+            "city": data['city']['name'],
             "current": {
-                "temp": round(current['temp'], 1),
-                "feels_like": round(current['feels_like'], 1),
-                "humidity": current['humidity'],
-                "wind_speed": round(current['wind_speed'], 1),
+                "temp": round(current['main']['temp'], 1),
+                "feels_like": round(current['main']['feels_like'], 1),
+                "humidity": current['main']['humidity'],
+                "wind_speed": round(current['wind']['speed'], 1),
                 "weather": current['weather'][0]['description'],
-                "uvi": round(current['uvi'], 1)
             },
-            "hourly": [{
-                "time": datetime.fromtimestamp(hour['dt']).strftime("%H:%M"),
-                "temp": round(hour['temp'], 1),
-                "weather": hour['weather'][0]['description']
-            } for hour in hourly],
-            "daily": [{
-                "date": datetime.fromtimestamp(day['dt']).strftime("%m/%d"),
-                "temp_max": round(day['temp']['max'], 1),
-                "temp_min": round(day['temp']['min'], 1),
-                "weather": day['weather'][0]['description']
-            } for day in daily],
-            "sunrise": datetime.fromtimestamp(current['sunrise']).strftime("%H:%M"),
-            "sunset": datetime.fromtimestamp(current['sunset']).strftime("%H:%M")
+            "forecasts": [{
+                "time": datetime.fromtimestamp(forecast['dt']).strftime("%m月%d日 %H:%M"),
+                "temp": round(forecast['main']['temp'], 1),
+                "weather": forecast['weather'][0]['description'],
+                "humidity": forecast['main']['humidity'],
+                "wind_speed": round(forecast['wind']['speed'], 1)
+            } for forecast in forecasts],
         }
         
         return weather_info
