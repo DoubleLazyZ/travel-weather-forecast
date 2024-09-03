@@ -3,10 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>天氣預報通知</title>
+    <title>天氣預報</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        h1 { color: #333; }
+        .forecast { background: #f4f4f4; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        button { background: #333; color: #fff; padding: 10px 15px; border: none; cursor: pointer; }
+        button:hover { background: #555; }
+        #notify-result { margin-top: 20px; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <h1>天氣預報通知</h1>
-    <p>{{ message }}</p>
+    <h1>{{ weather.city }} 天氣預報</h1>
+    {% for forecast in weather.forecasts %}
+        <div class="forecast">
+            <p><strong>時間：</strong>{{ forecast.time }}</p>
+            <p><strong>天氣：</strong>{{ forecast.weather }}</p>
+            <p><strong>溫度：</strong>{{ forecast.temp }}°C（體感 {{ forecast.feels_like }}°C）</p>
+            <p><strong>濕度：</strong>{{ forecast.humidity }}%</p>
+            <p><strong>風速：</strong>{{ forecast.wind_speed }} m/s</p>
+        </div>
+    {% endfor %}
+    
+    <button onclick="sendNotify()">發送 LINE 通知</button>
+    <div id="notify-result"></div>
+
+    <script>
+    function sendNotify() {
+        fetch('/send_notify', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('notify-result').textContent = data.message;
+            })
+            .catch(error => {
+                document.getElementById('notify-result').textContent = '發送失敗：' + error;
+            });
+    }
+    </script>
 </body>
 </html>
