@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>詳細天氣預報</title>
+    <title>釜山天氣預報 🌈</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,18 +11,19 @@
             padding: 20px;
             max-width: 1200px;
             margin: 0 auto;
-            background-color: #f0f0f0;
+            background-color: #e6f3ff; /* 淺藍色背景 */
+            color: #333;
         }
         h1, h2 {
-            color: #333;
+            color: #0077be; /* 深藍色標題 */
             text-align: center;
         }
         .section {
-            background: #fff;
+            background: #ffffff;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .hourly, .daily {
             display: flex;
@@ -31,29 +32,36 @@
         }
         .hour, .day {
             margin-right: 20px;
-            min-width: 100px;
+            min-width: 120px;
             text-align: center;
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 5px;
+            background: #f0f8ff; /* 非常淺的藍色 */
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         button {
-            background: #4CAF50;
+            background: #ffa500; /* 橙色按鈕 */
             color: white;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border: none;
             cursor: pointer;
             width: 100%;
-            font-size: 16px;
-            border-radius: 5px;
+            font-size: 18px;
+            border-radius: 30px;
+            transition: background 0.3s;
         }
         button:hover {
-            background: #45a049;
+            background: #ff8c00;
         }
         #notify-result {
             margin-top: 20px;
             font-weight: bold;
             text-align: center;
+            color: #0077be;
+        }
+        .emoji {
+            font-size: 24px;
+            margin-right: 5px;
         }
         @media (max-width: 600px) {
             body {
@@ -63,51 +71,51 @@
                 padding: 15px;
             }
             .hour, .day {
-                min-width: 80px;
+                min-width: 100px;
             }
         }
     </style>
 </head>
 <body>
-    <h1>{{ weather.city }} 詳細天氣預報</h1>
+    <h1>🌊 釜山天氣預報 🏙️</h1>
     
     <div class="section">
-        <h2>當前天氣</h2>
-        <p>溫度：{{ weather.current.temp }}°C（體感 {{ weather.current.feels_like }}°C）</p>
-        <p>天氣：{{ weather.current.weather }}</p>
-        <p>濕度：{{ weather.current.humidity }}%</p>
-        <p>風速：{{ weather.current.wind_speed }} m/s</p>
-        <p>UV指數：{{ weather.current.uvi }}</p>
-        <p>日出：{{ weather.sunrise }} / 日落：{{ weather.sunset }}</p>
+        <h2><span class="emoji">🌡️</span>當前天氣</h2>
+        <p><span class="emoji">🌡️</span>溫度：{{ weather.current.temp }}°C（體感 {{ weather.current.feels_like }}°C）</p>
+        <p><span class="emoji">☁️</span>天氣：{{ weather.current.weather }}</p>
+        <p><span class="emoji">💧</span>濕度：{{ weather.current.humidity }}%</p>
+        <p><span class="emoji">💨</span>風速：{{ weather.current.wind_speed }} m/s</p>
+        <p><span class="emoji">☀️</span>UV指數：{{ weather.current.uvi }}</p>
+        <p><span class="emoji">🌅</span>日出：{{ weather.sunrise }} / <span class="emoji">🌇</span>日落：{{ weather.sunset }}</p>
     </div>
 
     <div class="section">
-        <h2>24小時預報</h2>
+        <h2><span class="emoji">⏰</span>24小時預報</h2>
         <div class="hourly">
             {% for hour in weather.hourly %}
             <div class="hour">
                 <p><strong>{{ hour.time }}</strong></p>
-                <p>{{ hour.temp }}°C</p>
-                <p>{{ hour.weather }}</p>
+                <p><span class="emoji">🌡️</span>{{ hour.temp }}°C</p>
+                <p><span class="emoji">☁️</span>{{ hour.weather }}</p>
             </div>
             {% endfor %}
         </div>
     </div>
 
     <div class="section">
-        <h2>7天預報</h2>
+        <h2><span class="emoji">📅</span>7天預報</h2>
         <div class="daily">
             {% for day in weather.daily %}
             <div class="day">
                 <p><strong>{{ day.date }}</strong></p>
-                <p>{{ day.temp_min }}°C - {{ day.temp_max }}°C</p>
-                <p>{{ day.weather }}</p>
+                <p><span class="emoji">🌡️</span>{{ day.temp_min }}°C - {{ day.temp_max }}°C</p>
+                <p><span class="emoji">☁️</span>{{ day.weather }}</p>
             </div>
             {% endfor %}
         </div>
     </div>
     
-    <button onclick="sendNotify()">發送 LINE 通知</button>
+    <button onclick="sendNotify()"><span class="emoji">📱</span>發送 LINE 通知</button>
     <div id="notify-result"></div>
 
     <script>
@@ -115,10 +123,10 @@
         fetch('/send_notify', { method: 'POST' })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('notify-result').textContent = data.message;
+                document.getElementById('notify-result').textContent = '🎉 ' + data.message;
             })
             .catch(error => {
-                document.getElementById('notify-result').textContent = '發送失敗：' + error;
+                document.getElementById('notify-result').textContent = '❌ 發送失敗：' + error;
             });
     }
     </script>

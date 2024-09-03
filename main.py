@@ -151,23 +151,12 @@ def index():
         logging.debug(f"API Key: {api_key[:5]}... (truncated)")
         logging.debug(f"City: {city}, Lat: {lat}, Lon: {lon}")
 
-        weather_info = get_weather_info(city, lat, lon, api_key)  # 使用新函数
+        weather_info = get_weather_info(city, lat, lon, api_key)
         logging.debug(f"Weather info: {weather_info}")
-        return render_template('index.html', weather=weather_info)
-    except Exception as e:
-        logging.error(f"Error in index route: {str(e)}")
-        return f"An error occurred: {str(e)}", 500
-    try:
-        api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
-        city = os.environ.get('CITY', '釜山')
-        lat = float(os.environ.get('LAT', '35.1796'))
-        lon = float(os.environ.get('LON', '129.0756'))
-
-        logging.debug(f"API Key: {api_key[:5]}... (truncated)")
-        logging.debug(f"City: {city}, Lat: {lat}, Lon: {lon}")
-
-        weather_info = get_weather_forecast(city, lat, lon, api_key)
-        logging.debug(f"Weather info: {weather_info}")
+        
+        if "error" in weather_info:
+            return f"Error: {weather_info['error']}", 500
+        
         return render_template('index.html', weather=weather_info)
     except Exception as e:
         logging.error(f"Error in index route: {str(e)}")
@@ -202,3 +191,6 @@ def send_notify():
     except Exception as e:
         logging.error(f"Error in send_notify route: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True, port=int(os.getenv("PORT", default=5000)), host='0.0.0.0')
