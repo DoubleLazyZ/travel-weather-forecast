@@ -9,6 +9,56 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
 # 保持原有的 get_weather_forecast 和 send_line_notify 函數不變
+
+def get_weather_info(city, lat, lon, api_key):
+    base_url = "https://api.openweathermap.org/data/2.5/onecall"
+    params = {
+        "lat": lat,
+        "lon": lon,
+        "units": "metric",
+        "lang": "zh_tw",
+        "appid": api_key,
+        "exclude": "minutely,alerts"
+    }
+    try:
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        current = data['current']
+        hourly = data['hourly'][:24]  # 24小時預報
+        daily = data['daily'][:7]  # 7天預報
+
+        weather_info = {
+            "city": city,
+            "current": {
+                "temp": round(current['temp'], 1),
+                "feels_like": round(current['feels_like'], 1),
+                "humidity": current['humidity'],
+                "wind_speed": round(current['wind_speed'], 1),
+                "weather": current['weather'][0]['description'],
+                "uvi": round(current['uvi'], 1)
+            },
+            "hourly": [{
+                "time": datetime.fromtimestamp(hour['dt']).strftime("%H:%M"),
+                "temp": round(hour['temp'], 1),
+                "weather": hour['weather'][0]['description']
+            } for hour in hourly],
+            "daily": [{
+                "date": datetime.fromtimestamp(day['dt']).strftime("%m/%d"),
+                "temp_max": round(day['temp']['max'], 1),
+                "temp_min": round(day['temp']['min'], 1),
+                "weather": day['weather'][0]['description']
+            } for day in daily],
+            "sunrise": datetime.fromtimestamp(current['sunrise']).strftime("%H:%M"),
+            "sunset": datetime.fromtimestamp(current['sunset']).strftime("%H:%M")
+        }
+        
+        return weather_info
+    except requests.RequestException as e:
+        logging.error(f"Error fetching weather data: {e}")
+        return {"error": f"無法獲取天氣資訊。錯誤：{str(e)}"}
+    
 def get_weather_forecast(city, lat, lon, api_key):
     base_url = "https://api.openweathermap.org/data/2.5/forecast"
     params = {
@@ -92,6 +142,21 @@ scheduler.start()
 
 @app.route('/')
 def index():
+    try:
+        api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
+        city = os.environ.get('CITY', '釜山')
+        lat = float(os.environ.get('LAT', '35.1796'))
+        lon = float(os.environ.get('LON', '129.0756'))
+
+        logging.debug(f"API Key: {api_key[:5]}... (truncated)")
+        logging.debug(f"City: {city}, Lat: {lat}, Lon: {lon}")
+
+        weather_info = get_weather_info(city, lat, lon, api_key)  # 使用新函数
+        logging.debug(f"Weather info: {weather_info}")
+        return render_template('index.html', weather=weather_info)
+    except Exception as e:
+        logging.error(f"Error in index route: {str(e)}")
+        return f"An error occurred: {str(e)}", 500
     try:
         api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
         city = os.environ.get('CITY', '釜山')

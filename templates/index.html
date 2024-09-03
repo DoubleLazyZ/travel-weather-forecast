@@ -3,27 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>天氣預報</title>
+    <title>詳細天氣預報</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
-        h1 { color: #333; }
-        .forecast { background: #f4f4f4; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
-        button { background: #333; color: #fff; padding: 10px 15px; border: none; cursor: pointer; }
-        button:hover { background: #555; }
-        #notify-result { margin-top: 20px; font-weight: bold; }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f0f0f0;
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .hourly, .daily {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        .hour, .day {
+            margin-right: 20px;
+            min-width: 100px;
+            text-align: center;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #notify-result {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .section {
+                padding: 15px;
+            }
+            .hour, .day {
+                min-width: 80px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>{{ weather.city }} 天氣預報</h1>
-    {% for forecast in weather.forecasts %}
-        <div class="forecast">
-            <p><strong>時間：</strong>{{ forecast.time }}</p>
-            <p><strong>天氣：</strong>{{ forecast.weather }}</p>
-            <p><strong>溫度：</strong>{{ forecast.temp }}°C（體感 {{ forecast.feels_like }}°C）</p>
-            <p><strong>濕度：</strong>{{ forecast.humidity }}%</p>
-            <p><strong>風速：</strong>{{ forecast.wind_speed }} m/s</p>
+    <h1>{{ weather.city }} 詳細天氣預報</h1>
+    
+    <div class="section">
+        <h2>當前天氣</h2>
+        <p>溫度：{{ weather.current.temp }}°C（體感 {{ weather.current.feels_like }}°C）</p>
+        <p>天氣：{{ weather.current.weather }}</p>
+        <p>濕度：{{ weather.current.humidity }}%</p>
+        <p>風速：{{ weather.current.wind_speed }} m/s</p>
+        <p>UV指數：{{ weather.current.uvi }}</p>
+        <p>日出：{{ weather.sunrise }} / 日落：{{ weather.sunset }}</p>
+    </div>
+
+    <div class="section">
+        <h2>24小時預報</h2>
+        <div class="hourly">
+            {% for hour in weather.hourly %}
+            <div class="hour">
+                <p><strong>{{ hour.time }}</strong></p>
+                <p>{{ hour.temp }}°C</p>
+                <p>{{ hour.weather }}</p>
+            </div>
+            {% endfor %}
         </div>
-    {% endfor %}
+    </div>
+
+    <div class="section">
+        <h2>7天預報</h2>
+        <div class="daily">
+            {% for day in weather.daily %}
+            <div class="day">
+                <p><strong>{{ day.date }}</strong></p>
+                <p>{{ day.temp_min }}°C - {{ day.temp_max }}°C</p>
+                <p>{{ day.weather }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
     
     <button onclick="sendNotify()">發送 LINE 通知</button>
     <div id="notify-result"></div>
