@@ -2,13 +2,20 @@ from flask import Flask, render_template, jsonify
 from dotenv import load_dotenv
 import os
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
+from pytz import timezone
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
-load_dotenv();
+load_dotenv()
 app = Flask(__name__)
+
+
+taipei_tz = timezone('Asia/Taipei')
+
+
 def get_current_weather(lat, lon, api_key):
     base_url = "https://api.openweathermap.org/data/2.5/weather"
     params = {
@@ -24,7 +31,7 @@ def get_current_weather(lat, lon, api_key):
         data = response.json()
         
         current_weather = {
-            "time": datetime.fromtimestamp(data['dt']).strftime("%m月%d日 %H:%M"),
+            "time": datetime.fromtimestamp(data['dt'], taipei_tz).strftime("%m月%d日 %H:%M"),
             "temp": round(data['main']['temp'], 1),
             "feels_like": round(data['main']['feels_like'], 1),
             "humidity": data['main']['humidity'],
@@ -60,7 +67,7 @@ def get_weather_info(city, lat, lon, api_key):
             "city": forecast_data['city']['name'],
             "current": current_weather,
             "forecasts": [{
-                "time": datetime.fromtimestamp(forecast['dt']).strftime("%m月%d日 %H:%M"),
+                "time": datetime.fromtimestamp(forecast['dt'], taipei_tz).strftime("%m月%d日 %H:%M"),
                 "temp": round(forecast['main']['temp'], 1),
                 "weather": forecast['weather'][0]['description'],
                 "humidity": forecast['main']['humidity'],
@@ -194,8 +201,9 @@ def send_daily_notify():
     
     result = send_line_notify(message, access_token)
     print(f"Daily notification result: {result}")
+    print(f"Current time: {datetime.now(taipei_tz).strftime('%Y-%m-%d %H:%M:%S')}")
 
-scheduler = BackgroundScheduler()
+scheduler = BackgroundScheduler(timezone=taipei_tz)
 scheduler.add_job(func=send_daily_notify, trigger="cron", hour=7, minute=0)
 scheduler.start()
 
