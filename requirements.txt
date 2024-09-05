@@ -2,3 +2,4 @@ Flask==2.2.2
 Werkzeug==2.2.2
 requests==2.26.0
 APScheduler==3.9.1
+python-dotenv==0.19.1
